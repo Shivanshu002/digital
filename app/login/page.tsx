@@ -17,10 +17,22 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); setLoading(false); return }
-    router.push('/dashboard')
-    router.refresh()
+
+    // Set session explicitly so the next query is authenticated
+    await supabase.auth.setSession({
+      access_token: data.session!.access_token,
+      refresh_token: data.session!.refresh_token,
+    })
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+
+    localStorage.setItem('user_id', data.user.id)
+    localStorage.setItem('user_email', data.user.email ?? '')
+    localStorage.setItem('user_role', profile?.role ?? 'subscriber')
+
+    window.location.href = profile?.role === 'admin' ? '/admin' : '/dashboard'
   }
 
   return (

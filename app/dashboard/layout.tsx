@@ -1,14 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, TrendingUp, Heart, Trophy, LogOut } from 'lucide-react'
+import { LayoutDashboard, TrendingUp, Heart, Trophy, ShieldCheck } from 'lucide-react'
+import SignOutButton from '@/components/SignOutButton'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('full_name, subscription_status').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('full_name, subscription_status, role').eq('id', user.id).single()
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -35,11 +36,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <p className={`text-xs mt-0.5 ${profile?.subscription_status === 'active' ? 'text-emerald-400' : 'text-red-400'}`}>
             {profile?.subscription_status}
           </p>
-          <form action="/api/auth/signout" method="POST">
-            <button className="flex items-center gap-2 text-neutral-500 hover:text-white text-sm mt-4 transition-colors">
-              <LogOut size={16} /> Sign Out
-            </button>
-          </form>
+          {profile?.role === 'admin' && (
+            <Link href="/admin"
+              className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-sm mb-3 font-semibold transition-colors">
+              <ShieldCheck size={16} /> Admin Panel
+            </Link>
+          )}
+          <SignOutButton />
         </div>
       </aside>
 
