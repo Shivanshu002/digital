@@ -40,18 +40,22 @@ function SignupForm() {
     })
     if (signupError || !data.user) { setError(signupError?.message || 'Signup failed'); setLoading(false); return }
 
-    // Update profile with charity + activate subscription directly (payment handled separately)
-    const renewalDate = new Date(Date.now() + (plan === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
+    // Save charity preference before redirecting to payment
     await supabase.from('profiles').update({
       charity_id: charityId || null,
       charity_percentage: charityPct,
-      subscription_status: 'active',
       subscription_plan: plan,
-      subscription_renewal_date: renewalDate,
     }).eq('id', data.user.id)
 
-    router.push('/dashboard')
-    router.refresh()
+    // Redirect to Stripe Checkout (test mode)
+    const res = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, userId: data.user.id }),
+    })
+    const { url, error: stripeError } = await res.json()
+    if (stripeError || !url) { setError('Payment setup failed'); setLoading(false); return }
+    window.location.href = url
   }
 
   return (

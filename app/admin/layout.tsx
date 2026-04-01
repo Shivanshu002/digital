@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Users, Trophy, Heart, CheckSquare, BarChart3, LogOut } from 'lucide-react'
+import { Users, Trophy, Heart, CheckSquare, BarChart3, LogOut, LayoutDashboard } from 'lucide-react'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -39,6 +39,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <LogOut size={16} /> Sign Out
           </button>
         </form>
+        <Link href="/dashboard" className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-sm mt-3 transition-colors">
+          <LayoutDashboard size={16} /> User Dashboard
+        </Link>
       </aside>
       <main className="flex-1 md:ml-64 p-6 md:p-10">{children}</main>
     </div>
